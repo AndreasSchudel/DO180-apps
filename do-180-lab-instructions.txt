@@ -594,4 +594,44 @@ lab troubleshoot-review grade
 lab troubleshoot-review finish
 -------------------------------------------------
 
+-------------------------------------------------
+lab comprehensive-review start
+
+cd /home/student/DO180/labs/comprehensive-review/image
+./get-nexus-bundle.sh
+
+vi Dockerfile
+sudo podman build -t nexus .
+sudo podman images
+
+cd /home/student/DO180/labs/comprehensive-review
+cd deploy/local
+./run-persistent.sh
+
+sudo podman ps --format="table {{.ID}} {{.Names}} {{.Image}}"
+sudo podman logs -f nostalgic_shirley
+sudo podman kill nostalgic_shirley
+
+source /usr/local/etc/ocp4.config
+sudo podman login -u ${RHT_OCP4_QUAY_USER} quay.io
+sudo podman push localhost/nexus:latest quay.io/${RHT_OCP4_QUAY_USER}/nexus:latest
+
+cd ~/DO180/labs/comprehensive-review/deploy/openshift
+oc login -u ${RHT_OCP4_DEV_USER} -p ${RHT_OCP4_DEV_PASSWORD} ${RHT_OCP4_MASTER_API}
+oc new-project ${RHT_OCP4_DEV_USER}-review
+
+oc process -f resources/nexus-template.json -p RHT_OCP4_QUAY_USER=${RHT_OCP4_QUAY_USER} | oc create -f -
+oc expose svc/nexus
+oc get route -o yaml
+
+http://nexus-andreas-schudel-cloudops-review.apps.eu45.prod.nextcle.com/nexus/.
+
+lab comprehensive-review grade
+lab comprehensive-review finish
+-------------------------------------------------
+
+
+-------------------------------------------------
+-------------------------------------------------
+
 
